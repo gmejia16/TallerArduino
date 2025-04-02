@@ -1,23 +1,28 @@
-#define LED_ROJO 2
-#define LED_AMARILLO 3
-#define LED_VERDE 4
+// Definimos los pines de los LEDs
+const int ledRojo = 8;
+const int ledAmarillo = 9;
+const int ledVerde = 10;
 
 void setup() {
-    pinMode(LED_ROJO, OUTPUT);
-    pinMode(LED_AMARILLO, OUTPUT);
-    pinMode(LED_VERDE, OUTPUT);
+  // Configuramos los pines de los LEDs como salidas
+  pinMode(ledRojo, OUTPUT);
+  pinMode(ledAmarillo, OUTPUT);
+  pinMode(ledVerde, OUTPUT);
 }
 
 void loop() {
-    digitalWrite(LED_ROJO, HIGH);  
-    delay(3000);  
-    digitalWrite(LED_ROJO, LOW);
+  // Encendemos el LED rojo y esperamos 5 segundos (simula semáforo en rojo)
+  digitalWrite(ledRojo, HIGH);
+  delay(5000);
+  digitalWrite(ledRojo, LOW);
 
-    digitalWrite(LED_AMARILLO, HIGH);  
-    delay(1000);  
-    digitalWrite(LED_AMARILLO, LOW);
+  // Encendemos el LED amarillo y esperamos 2 segundos (simula luz amarilla)
+  digitalWrite(ledAmarillo, HIGH);
+  delay(2000);
+  digitalWrite(ledAmarillo, LOW);
 
-    digitalWrite(LED_VERDE, HIGH);  
-    delay(3000);  
-    digitalWrite(LED_VERDE, LOW);
+  // Encendemos el LED verde y esperamos 4 segundos (simula semáforo en verde)
+  digitalWrite(ledVerde, HIGH);
+  delay(4000);
+  digitalWrite(ledVerde, LOW);
 }
