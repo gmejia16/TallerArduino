@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #define BUZZER_PIN 9
 
 const int buttonPins[] = {2, 3, 4, 5, 6, 7, 8, 10}; // Pines de los botones
