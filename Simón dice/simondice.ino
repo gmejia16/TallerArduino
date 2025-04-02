@@ -1,64 +1,100 @@
-#define NUM_LEDS 4
-int leds[NUM_LEDS] = {2, 3, 4, 5};  
-int botones[NUM_LEDS] = {6, 7, 8, 9};  
-int secuencia[10];  
-int nivel = 0;
+// Definición de pines para LEDs y botones
+const int ledPins[] = {6, 7, 8, 9};  // LEDs conectados a estos pines
+const int buttonPins[] = {2, 3, 4, 5}; // Botones conectados a estos pines
+
+const int sequenceLength = 10; // Longitud máxima de la secuencia
+int gameSequence[sequenceLength]; // Almacena la secuencia generada
+int userInput[sequenceLength]; // Almacena la secuencia ingresada por el usuario
+
+int currentRound = 1; // Número de elementos a recordar en la ronda actual
 
 void setup() {
     Serial.begin(9600);
-    for (int i = 0; i < NUM_LEDS; i++) {
-        pinMode(leds[i], OUTPUT);
-        pinMode(botones[i], INPUT_PULLUP);
+    randomSeed(analogRead(0)); // Inicializar aleatoriedad con una lectura analógica
+
+    // Configurar pines de LEDs y botones
+    for (int i = 0; i < 4; i++) {
+        pinMode(ledPins[i], OUTPUT);
+        pinMode(buttonPins[i], INPUT_PULLUP);
     }
-    iniciarJuego();
+
+    delay(1000); // Pequeña pausa antes de comenzar el juego
 }
 
 void loop() {
-    mostrarSecuencia();
-    if (!verificarEntrada()) {
-        Serial.println("Juego terminado");
-        iniciarJuego();
-    } else {
-        nivel++;
-        if (nivel == 10) {
-            Serial.println("¡Ganaste!");
-            iniciarJuego();
+    generateSequence(); // Crear la secuencia del juego
+
+    while (true) {
+        playSequence(); // Mostrar la secuencia con LEDs
+
+        if (!getUserInput()) { // Capturar y verificar la entrada del usuario
+            Serial.println("Juego terminado. Inténtalo de nuevo.");
+            delay(2000);
+            currentRound = 1; // Reiniciar el juego
+        } else {
+            Serial.println("¡Bien hecho! Pasando a la siguiente ronda.");
+            currentRound++; // Avanzar a la siguiente ronda
+            if (currentRound > sequenceLength) {
+                Serial.println("¡Felicidades! Completaste el juego.");
+                currentRound = 1; // Reiniciar si gana
+            }
         }
+
+        delay(1000); // Pequeña pausa antes de la siguiente ronda
     }
 }
 
-void iniciarJuego() {
-    nivel = 0;
-    for (int i = 0; i < 10; i++) {
-        secuencia[i] = random(NUM_LEDS);
+// Genera la secuencia aleatoria para el juego
+void generateSequence() {
+    for (int i = 0; i < sequenceLength; i++) {
+        gameSequence[i] = random(0, 4); // Valores entre 0 y 3 (correspondientes a los LEDs)
     }
-    delay(1000);
 }
 
-void mostrarSecuencia() {
-    Serial.println("Memoriza esta secuencia:");
-    for (int i = 0; i <= nivel; i++) {
-        digitalWrite(leds[secuencia[i]], HIGH);
+// Muestra la secuencia de LEDs hasta la ronda actual
+void playSequence() {
+    Serial.print("Mostrando secuencia: ");
+    for (int i = 0; i < currentRound; i++) {
+        int led = gameSequence[i];
+        digitalWrite(ledPins[led], HIGH);
+        Serial.print(led);
+        Serial.print(" ");
         delay(500);
-        digitalWrite(leds[secuencia[i]], LOW);
+        digitalWrite(ledPins[led], LOW);
         delay(250);
     }
+    Serial.println();
 }
 
-bool verificarEntrada() {
-    for (int i = 0; i <= nivel; i++) {
-        bool presionado = false;
-        while (!presionado) {
-            for (int j = 0; j < NUM_LEDS; j++) {
-                if (digitalRead(botones[j]) == LOW) {
-                    presionado = true;
-                    if (j != secuencia[i]) return false;
-                    digitalWrite(leds[j], HIGH);
-                    delay(300);
-                    digitalWrite(leds[j], LOW);
+// Captura la entrada del usuario y la compara con la secuencia generada
+bool getUserInput() {
+    Serial.println("Introduce la secuencia:");
+
+    for (int i = 0; i < currentRound; i++) {
+        bool buttonPressed = false;
+        int pressedButton = -1;
+
+        while (!buttonPressed) { // Esperar a que el usuario presione un botón válido
+            for (int j = 0; j < 4; j++) {
+                if (digitalRead(buttonPins[j]) == LOW) { // Botón presionado
+                    buttonPressed = true;
+                    pressedButton = j;
+                    while (digitalRead(buttonPins[j]) == LOW); // Esperar a que suelte el botón
+                    delay(100); // Evitar rebotes
                 }
             }
         }
+
+        Serial.print("Botón presionado: ");
+        Serial.println(pressedButton);
+
+        userInput[i] = pressedButton;
+
+        if (userInput[i] != gameSequence[i]) { // Comparar con la secuencia correcta
+            Serial.println("Secuencia incorrecta.");
+            return false; // Fin del juego si hay error
+        }
     }
-    return true;
+
+    return true; // Si completó la secuencia correctamente
 }
